@@ -1,0 +1,5 @@
+# Ignore .metadata directory
+.metadata/
+
+# Ignore mtb_shared directory
+mtb_shared/

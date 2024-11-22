@@ -50,26 +50,36 @@ static float read_thermistor(void)
 
 static void publish_temperature(float temperature)
 {
-    char message[10];
-    snprintf(message, sizeof(message), "%.2f", temperature); // Format the temperature value as a string
+    /* Dynamically allocate memory for the message */
+    char *message = pvPortMalloc(10); // Allocate memory for the payload
+    if (message == NULL)
+    {
+        printf("Thermistor Task: Failed to allocate memory for payload.\n");
+        return;
+    }
 
-    /* Publish the temperature data to MQTT */
+    snprintf(message, 10, "%.2f", temperature); // Format the temperature value as a string
+
+    /* Configure MQTT message */
     cy_mqtt_publish_info_t msg;
     msg.topic = MQTT_THERMISTOR_TOPIC;
     msg.topic_len = strlen(MQTT_THERMISTOR_TOPIC);
-    msg.payload = message;
+    msg.payload = message; // Pointer to the dynamically allocated buffer
     msg.payload_len = strlen(message);
     msg.retain = false;
+
     /* Send the message to the queue */
     if (xQueueSend(DataQueue, &msg, portMAX_DELAY) != pdTRUE)
     {
         printf("Thermistor Task: Failed to send data to publisher task.\n");
+        vPortFree(message); // Free memory in case of failure
     }
     else
     {
         printf("Thermistor Task: Sent temperature '%.2f' to publisher task.\n", temperature);
     }
 }
+
 
 
 /* Thermistor task that reads the thermistor value and publishes it */

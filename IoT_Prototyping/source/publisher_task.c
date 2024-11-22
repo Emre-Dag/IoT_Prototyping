@@ -67,6 +67,7 @@ void publisher_task(void *pvParameters)
             {
                 printf("Publisher: MQTT Publish failed with error 0x%0X.\n", (int)result);
             }
+            vPortFree((void *)received_data.payload);
         }
         print_heap_usage("publisher_task: After publishing");
     }
